@@ -1,0 +1,26 @@
+name: lcr-dataengineering-sql
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  # Python
+  - python=3.11
+
+  # DB / ODBC
+  - pyodbc                    # via conda-forge, mais suave no Windows
+
+  # Data
+  - pandas
+
+  # Utilidades
+  - pip
+  - python-dotenv
+  - sqlalchemy>=2.0
+
+  # (opcionais futuros — só descomentar quando quiser usar)
+  # - alembic                 # migrations com SQLAlchemy
+  # - pyarrow                 # acelera IO de parquet/csv em alguns casos
+  # - openpyxl                # se precisar ler/gravar Excel
+
+  - pip:
+      - -e .                 # instala seu pacote local em modo editável
