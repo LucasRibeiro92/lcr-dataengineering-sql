@@ -3,7 +3,7 @@ requires = ["hatchling>=1.18"]
 build-backend = "hatchling.build"
 
 [project]
-name = "lcr-dataengineering-sql"
+name = "lcr_dataengineering_sql"
 version = "0.1.0"
 description = "Pacote local para explorar SQL Server com SQLAlchemy + pyodbc"
 readme = "README.md"
@@ -15,4 +15,4 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/lcr-dataengineering-sql"]
+packages = ["src/lcr_dataengineering_sql"]

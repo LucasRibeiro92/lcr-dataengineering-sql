@@ -1,8 +1,6 @@
-# scripts/csv_to_table_static.py
-
 import os
 import pandas as pd
-from src.lcr_dataengineering_sql.db_utils import (
+from lcr_dataengineering_sql.db_utils import (
     create_table_if_not_exists_from_df,
     bulk_insert_df,
 )
@@ -34,12 +32,6 @@ def main():
         nrows=CHUNKSIZE,
         low_memory=False,
     )
-
-    created = create_table_if_not_exists_from_df(
-        df, schema=SCHEMA, table=TABLE, pk=PK_COLUMNS
-    )
-    if created:
-        print(f"Criada tabela [{SCHEMA}].[{TABLE}]")
 
     # insere o primeiro lote
     rows_total = 0

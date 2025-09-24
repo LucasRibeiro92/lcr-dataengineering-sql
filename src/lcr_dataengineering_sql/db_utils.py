@@ -1,17 +1,19 @@
 from __future__ import annotations
+import re
 from typing import Dict, Optional, Iterable
 from sqlalchemy import text, inspect
 from sqlalchemy.types import Integer, Float, Boolean, DateTime, String
 from sqlalchemy import text
-from .engine import get_engine
+from .engine import default_engine_provider
 import pandas as pd
 
 def ping() -> dict:
-    eng = get_engine()
+    eng = default_engine_provider()
     with eng.connect() as conn:
         row = conn.execute(text("SELECT @@SERVERNAME AS server_name, DB_NAME() AS db, SUSER_SNAME() AS login")).one()
         return dict(row._mapping)
 
+'''
 def exec_sql(sql: str, params: dict | None = None) -> int:
     """
     DDL/DML (CREATE/INSERT/UPDATE/DELETE). Retorna rowcount.
@@ -74,44 +76,101 @@ def infer_sqlalchemy_dtypes(df, max_varchar: int = 4000) -> Dict[str, String | I
                 dtypes[col] = String(length=max(1, min(max_varchar, maxlen)))
     return dtypes
 
-def create_table_if_not_exists_from_df(df, schema: str, table: str, pk: Optional[Iterable[str]] = None, sample_rows: int = 5000):
+def _sanitize_identifier(name: str) -> str:
+    """
+    Mantém apenas A-Z, 0-9 e _, trocando os demais por _.
+    Se começar com dígito, prefixa 'C_'.
+    Remove underscores extras nas pontas.
+    """
+    n = re.sub(r'[^A-Z0-9_]', '_', name.upper())
+    n = n.strip('_')
+    if not n:
+        n = 'C'
+    if n[0].isdigit():
+        n = 'C_' + n
+    return n
+
+def _build_column_mapping(cols: Iterable[str], prefix: str) -> Dict[str, str]:
+    """
+    Gera mapeamento original -> PREFIXO+UPPER+saneado, evitando colisões.
+    """
+    seen = set()
+    mapping: Dict[str, str] = {}
+    for c in cols:
+        base = _sanitize_identifier(f"{prefix}{str(c)}")
+        cand = base
+        k = 1
+        while cand in seen:
+            k += 1
+            cand = f"{base}_{k}"
+        seen.add(cand)
+        mapping[c] = cand
+    return mapping
+
+def create_table_if_not_exists_from_df(
+    df,
+    schema: str,
+    table: str,
+    column_prefix: str,
+    pk: Optional[Iterable[str]] = None,
+    sample_rows: int = 5000
+) -> bool:
     """
     Cria a tabela com base no DF (amostra) se ela não existir.
-    Para PK, passe uma lista de colunas (opcional).
-    """
+    - Colunas sobem para MAIÚSCULO
+    - Recebem prefixo `column_prefix`
+    - Nomes são saneados para identificadores válidos no SQL Server
 
+    Retorna True se criou, False se já existia.
+    """
     eng = get_engine()
 
     if table_exists(schema, table):
         return False  # já existe
 
-    # usa uma amostra para inferir tamanhos de string
-    if len(df) > sample_rows:
-        df_sample = df.head(sample_rows).copy()
-    else:
-        df_sample = df
+    # amostra para inferência de tipos
+    df_sample = df.head(sample_rows).copy() if len(df) > sample_rows else df.copy()
 
+    # mapeia nomes de colunas -> PREFIXO + UPPER + saneado
+    col_map = _build_column_mapping(df_sample.columns, column_prefix)
+
+    # inferência dos tipos com base na amostra original
     dtypes = infer_sqlalchemy_dtypes(df_sample)
+    # reindexa o dict de dtypes para os nomes novos
+    dtypes_renamed = {col_map[k]: v for k, v in dtypes.items()}
 
-    # deixa o pandas criar a tabela com os dtypes que definimos
-    # criamos tabela vazia usando 0 linhas
-    empty = df.iloc[0:0]
+    # cria DataFrame vazio já com colunas renomeadas
+    empty = df.iloc[0:0].rename(columns=col_map)
+
     with eng.begin() as conn:
+        # cria a tabela
         empty.to_sql(
             name=table,
             con=conn,
             schema=schema,
             if_exists="fail",
             index=False,
-            dtype=dtypes,
+            dtype=dtypes_renamed,
         )
-        # define PK se solicitado
+
+        # PK (se houver) – precisa apontar para os nomes novos
         if pk:
-            # monta um ALTER TABLE ADD CONSTRAINT PK
-            pk_cols = ", ".join(f"[{c}]" for c in pk)
-            sql = f"ALTER TABLE [{schema}].[{table}] ADD CONSTRAINT [PK_{table}] PRIMARY KEY ({pk_cols})"
+            pk_mapped = [_sanitize_identifier(f"{column_prefix}{p}") for p in pk]
+            pk_cols = ", ".join(f"[{c}]" for c in pk_mapped)
+            sql = f"ALTER TABLE [{schema}].[{table}] ADD CONSTRAINT [PK_{_sanitize_identifier(table)}] PRIMARY KEY ({pk_cols})"
             conn.execute(text(sql))
+
     return True
+
+# --- ajudinha para usar no insert depois ---
+
+def rename_df_for_db(df, column_prefix: str):
+    """
+    Renomeia o DF para os mesmos nomes que a função de criação usou.
+    Use isto ANTES de chamar bulk_insert_df para bater com os nomes no banco.
+    """
+    mapping = _build_column_mapping(df.columns, column_prefix)
+    return df.rename(columns=mapping)
 
 def bulk_insert_df(df, schema: str, table: str, chunksize: int = 10000):
     """
@@ -132,3 +191,4 @@ def bulk_insert_df(df, schema: str, table: str, chunksize: int = 10000):
             chunksize=chunksize,
         )
 
+'''
