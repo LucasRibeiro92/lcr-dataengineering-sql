@@ -1,15 +1,14 @@
 
-# detools v0.4.1 — biblioteca-first (com Azure Blob + Catálogo/Schema + Notebook)
+# lcr-dataengineering-sql v0.2.1
 
-Novidades:
-- `io.azure_blob` (adlfs): leitura/escrita com URLs `abfs://container@account.dfs.core.windows.net/path`
-- `utils.catalog`: tipos/validações simples (schema, required, casts, unique)
-- `notebooks/Quickstart.ipynb`: exemplo end-to-end (auth Azure, REST, DataFrame, salvar no ADLS ou local, e carregar no SQL)
+Goals:
+- `use sql server and database, onprem and cloud as many ways as possible`
+- `use as part of a bigger data engineer framework, maybe as a microservice`
 
-Instalação rápida:
+Quick installation:
 ```
 conda env create -f environment.yml
-conda activate detools
+conda activate lcr-dataengineering-sql
 pip install -e .
 cp .env.example .env
 ```
