@@ -5,7 +5,7 @@ from lcr_dataengineering_sql.features.repo import Repo
 
 # =========================
 # CONFIGURE AQUI 👇
-CSV_PATH      = r"C:\deprojects\lcr-dataengineering-sql\data\raw\hr_mock.csv"   # caminho do CSV
+CSV_PATH      = r"/data/raw/hr_mock.csv"  # caminho do CSV
 SCHEMA        = "MOCKED_HR_DATA"                              # schema de destino
 TABLE         = "MOCHRD_PESSOA_FROM_REPO"                         # tabela de destino
 COLUMN_PREFIX = "MOCHRD_"
