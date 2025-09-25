@@ -1,10 +1,10 @@
-# code/struc_MOCHRD_PESSOA_FROM_REPO.py
+# code/create_table_from_csv.py
 import os
 from lcr_dataengineering_sql.container import db
 from lcr_dataengineering_sql.features.repo import Repo
 
 # ===== CONFIG =====
-CSV_PATH      = r"C:\deprojects\lcr-dataengineering-sql\data\raw\hr_mock.csv"
+CSV_PATH      = r"/data/raw/hr_mock.csv"
 SCHEMA        = "MOCKED_HR_DATA"
 TABLE         = "MOCHRD_PESSOA_FROM_REPO"
 COLUMN_PREFIX = "MOCHRD_"
