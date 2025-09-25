@@ -1,4 +1,4 @@
-# code/load_MOCHRD_PESSOA_FROM_REPO.py
+# code/load_data_from_csv.py
 import os
 from lcr_dataengineering_sql.container import db
 from lcr_dataengineering_sql.features.repo import Repo

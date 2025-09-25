@@ -1,4 +1,4 @@
-# code/struc_MOCHRD_PESSOA_FROM_REPO.py
+# code/create_table_from_csv.py
 import os
 from lcr_dataengineering_sql.container import db
 from lcr_dataengineering_sql.features.repo import Repo
